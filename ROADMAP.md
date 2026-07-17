@@ -72,6 +72,15 @@
   selective sharing (L#063), and persists only above a minimum producer fraction
   (L#064). Connect to language / immune alarm signaling / AI alignment. The
   stable state is a club, not a commons.
+- **Interactive Canvas visualization (deferred).** Desired: a single self-contained
+  HTML file showing the cell population live — dots for cells, lines for type-50
+  warning edges, a producer_fraction gauge, shock flashes, sliders for
+  `--producer-death-bonus` / shock rate. Blocked on the speedup work above:
+  (a) the real Rust runtime can't run in-browser (no mmap/SIGSEGV in WASM), so a
+  *faithful* live port means reimplementing the cell loop + signal bus + energy +
+  lineage-switch + directed-warning in JS (multi-day); (b) a *replay* viewer of
+  recorded event logs is simpler but needs the binary-log format to be tractable
+  (330MB JSON is unworkable in-browser). Revisit after speedup + L#064 retest.
 
 ---
 
