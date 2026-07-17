@@ -110,6 +110,12 @@
 > **Speculative law target board:** `ZYGOTE_LAWS_PROJECTED.md` lists predicted
 > L#065–L#128 (5 research blocks A–E) as hypotheses + experiment designs for the
 > autonomous discoverer to confirm or refute.
+>
+> **Why this matters (applications):** `ZYGOTE_THESIS.md` §2 frames Zygote as an
+> instrument, not a product — a reference model (periodic table for cooperative
+> information systems) used for cooperation theory, multi-agent AI / alignment,
+> distributed-systems failure simulation, and education. The real output is the
+> law catalog as a diagnostic, not the simulation.
 
 ---
 

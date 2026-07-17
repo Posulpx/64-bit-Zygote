@@ -352,3 +352,64 @@ The stable endpoint is not an unrestricted commons.
 The stable endpoint is a club.
 
 That conclusion emerged not from theory, but from experiment.
+
+---
+
+# 2. Applications — Why A Law Library Matters
+
+The 64 laws (and the projected L#065–L#128) are only interesting if they tell us
+something about systems *outside* the machine. Zygote is not a product; it is an
+*instrument*. Its value is as a reference model — a periodic table for
+cooperative-information systems — that researchers and engineers consult, not a
+simulation anyone deploys.
+
+The endless discovery of laws is the **calibration phase**: building the
+instrument. The application appears once the catalog is rich enough to
+*predict* behavior in real systems. The autonomous discoverer (ROADMAP North
+Star) is what gets us there fast enough for that to matter.
+
+## 2.1 A microscope for cooperation theory
+
+The evolution of cooperation under free-rider pressure is a 50-year problem in
+biology, economics, and AI — usually studied with equations or abstract agent
+sims. Zygote is unusual because the agents are *real machine code that can
+crash*, so "death" is substrate-honest, not simulated. That makes it a clean
+lab for the question: *under what exact conditions does honest signaling
+survive?* The L#062 → L#063 → L#064 arc is already a publishable result here.
+Application: **theory-building** — a place to test cooperation hypotheses that
+cannot be tested in living systems.
+
+## 2.2 Multi-agent AI and alignment
+
+The most near-term real use. Multiple autonomous agents (cells) in a shared
+environment, where honest communication is exploitable by free-riders, and the
+stable fix is *selective, trust-gated routing of information* (L#063), not
+"broadcast everything." That is the open problem in multi-agent AI today: how
+do you get a network of LLM-agents or robots to share useful information
+without (a) being manipulated by bad actors and (b) wasting bandwidth on
+cheaters? Zygote's answer: **club-based, trust-gated sharing beats universal
+broadcast.** A directly transferable design principle.
+
+## 2.3 Robust distributed systems
+
+L#004 (fragility) and L#066 (protection must outlast the threat to be
+load-bearing) map onto why microservice meshes and sensor networks fail: an
+alerting system too short-lived to matter is decoration. Zygote as a
+**failure-mode simulator** for monitoring/alerting infrastructure: "you need at
+least this fraction of honest monitors or your alert network goes dark (L#064)."
+
+## 2.4 Education
+
+Immediate, low-effort application. People learn evolution, cooperation, and
+game theory faster by watching cells than by reading Axelrod. A Canvas
+visualization (ROADMAP: deferred) turns the law library into a textbook.
+
+## 2.5 The real product is the catalog, not the simulation
+
+The future is not "more laws." It is the law library becoming a **diagnostic**:
+once rich enough, Zygote can say *"your multi-agent AI has a free-rider problem
+that L#062 predicts will collapse unless you switch to L#063-style selective
+routing."* The simulation is the instrument; the reference model is the output.
+
+This is also why the speedup (ROADMAP: Beyond 64) mattered more than it looked —
+a reference model cannot be built on 7 ticks/sec.
