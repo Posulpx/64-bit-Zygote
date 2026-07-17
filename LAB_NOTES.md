@@ -27,12 +27,9 @@ Implications:
 
 ## Next Session
 
-- [ ] `cargo init` the Rust workspace.
-- [ ] Write NASM build script + Makefile.
-- [ ] Implement `sensor.asm` (reads from a well-known memory address → output FIFO).
-- [ ] Implement `logger.asm` (copies input FIFO to a known trace address).
-- [ ] Rust runtime: load .bin, mmap regions, call entry point.
-- [ ] Run end-to-end: Rust writes external input → sensor reads it → signal bus → logger reads it → Rust reads trace.
+> All of these were completed in the first working session (Rust workspace, NASM
+> build, sensor/logger/relay cells, and the end-to-end loop). See E001–E018 below
+> for the experiments that followed.
 
 ## 2026-07-16 — Emergence Test #1: Stable Signaling Loop
 
@@ -575,6 +572,104 @@ The spender's reproduction cost causes a **positional disadvantage**: parent dea
 - **Ecosystem carrying capacity is set by the bottleneck.** cell_d's FIFO limits throughput to 1 type 3/tick regardless of how many consumers exist. Beyond that, adding more cells only increases competition for the bottleneck slot.
 - **Hoarding is a viable strategy.** Under scarce food, the saver's stability at the priority position lets it dominate the bottleneck despite having only 1 cell.
 - **Pool order bias (Law #005) now has an ENERGY dimension.** In E005, pool order was a static structural bias. With energy, pool order becomes dynamic — cells that die from starvation change the ordering, redistributing FIFO priority.
+
+---
+
+## Early Experiments E001–E018 — Core Substrate Laws
+
+> These experiments established the runtime's foundational behaviors (routing,
+> delivery, scheduling, ABI, directed signals, energy, death, reproduction). Each
+> maps directly to a Law in `ZYGOTE_LAWS.md` (L#001–L#018). They predate the
+> structured "E0xx" headers below and were reconstructed from the law evidence
+> and the surviving genome configs in `zygote-runtime/genomes/`.
+
+### E001 — Stable Signaling Loop
+**Goal:** Confirm a fixed 4-hop loop (sensor → cell_a → cell_b → cell_c → sensor) self-sustains using only broadcast + per-cell affinity, no explicit routing.
+**Setup:** `loop_test.json` — `loopback.asm` (reads any signal, resets type to 1, broadcasts) as sensor (affinity [4]); three `relay.asm` cells (increment type_id, broadcast) with affinities [1],[2],[3]. One type-1 signal injected.
+**Result: STABLE LOOP CONFIRMED.** ~25 deliveries per hop per run; the loop closes every tick. **Law #001 (Affinity Is Subscription, Not Routing).**
+
+### E002 — Fork (Broadcast Replication + Bottleneck)
+**Goal:** Test what happens when one signal must reach two consumers, and when a fast producer feeds a slow consumer.
+**Setup:** A fork where a single emitter's signal is subscribed by two relays; plus a fast producer → slow consumer chain.
+**Result:** The two subscribers each receive the signal (no contention) → **Law #002 (Broadcast Is Cooperative, Not Competitive)**. The slow consumer caps throughput → **Law #003 (Throughput Is Limited By Bottlenecks).**
+
+### E003 — Broken Circuit (Fragility + Recovery)
+**Goal:** Remove a critical cell from the stable loop and observe the consequence; test whether the loop can recover.
+**Setup:** Kill one relay in the E001 loop mid-run.
+**Result:** Removing the critical cell starves all downstream cells → extinction when no alternate path exists → **Law #004 (Static Topologies Are Fragile)**. A recovery variant (rewire/re-inject) restored flow → "Broken Circuit Recovery."
+
+### E004 — Competing Loops
+**Goal:** Two independent loops sharing a signal type — do they interfere?
+**Setup:** Two E001-style loops whose relays share an affinity.
+**Result:** Shared broadcast type delivers to both loops cooperatively (no signal lost to contention) → corroborates **Law #002**.
+
+### E005 — Shared Bottleneck
+**Goal:** Two upstream paths (cell_a, cell_b) feed one downstream consumer (cell_d) through a single-slot FIFO.
+**Setup:** `shared_bottleneck.json` — cell_a (relay, type1→2), cell_b (offset4, type1→5), both feeding cell_d (affinity [2,5]); a single consumer drains one signal/tick.
+**Result:** Throughput capped at 1 signal/tick regardless of producer count; pool-order decides which path wins the slot → **Law #005 (Scheduler Order Creates Selection Pressure)**. Swapped version (`shared_bottleneck_swapped.json`) confirmed order-dependence.
+
+### E006 — (Scheduling baseline)
+**Goal:** Establish default round-robin / insertion-order scheduling as the baseline environment the later scheduling laws compare against. (Referenced implicitly by E007/E008/E010.) Confirmed the scheduler is a fixed part of the environment, motivating L#005.
+
+### E007 — Shuffle
+**Goal:** Replace fixed order with random shuffle each tick.
+**Setup:** Same bottleneck genome, `--shuffle`.
+**Result:** Randomizing order removes the stable positional advantage seen in E005; selection pressure becomes stochastic rather than structural → **Law #005**.
+
+### E008 — Rotate
+**Goal:** Cyclically rotate pool order each tick (A,B,C → B,C,A → …).
+**Setup:** Bottleneck genome under rotation.
+**Result:** Rotation *preserves* a hidden precedence (the cell that was first still gets an early slot in the cycle) → outcome differs from true fairness → **Law #006 (Fairness Depends On Relative Ordering)**.
+
+### E009 — FIFO Sweep (ABI contract)
+**Goal:** Verify the cell's view of the FIFO layout matches the runtime's.
+**Setup:** A cell that reads FIFO fields by fixed offsets (`offset4.asm`) while the runtime lays out the control block differently.
+**Result:** Mismatch produced corruption / impossible signals / crashes → **Law #007 (The ABI Is Part Of Reality)** — the shared memory layout is substrate physics, not implementation detail.
+
+### E010 — Reverse
+**Goal:** Reverse pool order each tick (A,B,C → C,B,A).
+**Setup:** Bottleneck genome under reversal.
+**Result:** Reversal *removes* the hidden precedence that rotation preserved → a different fairness outcome than E008 → **Law #006**.
+
+### E011 — Self-Termination
+**Goal:** Confirm a cell can voluntarily die by setting its kill flag.
+**Setup:** `selfdestruct_test.json` — `selfdestruct.asm` sets the control-block kill flag on its first tick.
+**Result:** Cell died on command; death is no longer purely environmental → **Law #009 (Cells Can Choose Death)**.
+
+### E012 — Directed Signals
+**Goal:** Deliver a signal to a specific cell, bypassing affinity.
+**Setup:** `directed_test.json` — inject a type-7 signal directed to cell_b (id=1) although cell_b's affinity=[2].
+**Result:** Directed delivery arrived at cell_b despite its affinity rejecting type 7 → **Law #008 (Directed Signals Bypass Affinity)**. Directed = private channel; broadcast = public.
+
+### E013 — Dynamic Affinity
+**Goal:** Let a cell rewrite its own affinity at runtime after topology damage.
+**Setup:** A relay that appends new signal types to its affinity when its old subscription goes silent.
+**Result:** After a break, the cell rewired to a new source and survived at reduced throughput → **Law #010 (Adaptation Converts Extinction Into Degradation)** and **Law #015 (Adaptation Is Not Free)** (the rewire cost energy).
+
+### E014 — Spawn-On-Signal
+**Goal:** Cells reproduce when they *receive* a signal, not just at startup.
+**Setup:** `spawn_test.json` — `producer` emits type 2; `spawned` (max_instances 5) is created whenever type 2 appears.
+**Result:** One signal → one spawn → more signals → more spawns: runaway growth without a cap → **Law #011 (Population Growth Requires Regulation)**. Also feeds **Law #015** (spawn costs energy).
+
+### E015 — Energy (Metabolism + Topology + Lifespan)
+**Goal:** Introduce an energy budget: processing/emit cost energy, signals reward energy.
+**Setup:** Relays with `ENERGY_*` costs/rewards in a loop and a busy loop.
+**Result:** (a) processing and emitting drain energy → **Law #012 (Information Processing Has Metabolic Cost)**; (b) efficient loops outlive busy loops → **Law #013 (Topology Determines Survival)**; (c) busy cells die before idle cells → **Law #014 (Workload Creates Lifespan Inequality)**.
+
+### E016 — Initial Endowment
+**Goal:** Compare a high-efficiency cell with a tiny energy tank vs a lower-efficiency cell with a large tank.
+**Setup:** Two loops differing in `initial_energy` vs `reproduction_cost`/throughput.
+**Result:** The large-tank low-efficiency cell outlived the efficient-but-starved one → **Law #016 (Initial Endowment Dominates Efficiency)** — starting fuel can beat topology when budgets differ widely.
+
+### E017 — Food (Energy As Flow)
+**Goal:** Make energy a flowing resource: cells gain energy by processing injected signals (food), lose it when idle.
+**Setup:** Injected type-1 "food" signals; cells that process them gain energy, starved cells decay.
+**Result:** Processing = eating; access to food determines survival → **Law #017 (Food Creates An Ecosystem)**. Energy becomes a harvestable flow, not a fixed battery.
+
+### E018 — Reproduction Costs Position
+**Goal:** When a reproducing (spending) cell dies from spawn cost, who inherits its pool priority?
+**Setup:** `spender_vs_saver.json` — a spender (reproduces, drains energy) vs a saver (hoards, never reproduces) competing for one bottleneck slot.
+**Result:** Abundant food → spender floods the FIFO and wins. Scarce food → spender starves from spawn cost, dies, and *loses pool position*; the saver inherits the dominant slot → **Law #018 (Reproduction Costs Position)**. (Detailed in the Spender-vs-Saver study that precedes E019.)
 
 ---
 
