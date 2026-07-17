@@ -7,6 +7,15 @@ use crate::observer::Observer;
 use crate::signal::*;
 use crate::types::*;
 
+/// Debug-only eprintln!. Prints only when `rt.verbose` is true. Replaces the
+/// old unconditional debug spam that dominated I/O on long runs. Usage mirrors
+/// eprintln! but the first arg must be the `&Runtime` (so it can check the flag).
+macro_rules! dlog {
+    ($rt:expr, $($arg:tt)*) => {
+        if $rt.verbose { eprintln!($($arg)*); }
+    };
+}
+
 #[derive(Debug)]
 pub struct EventWriter {
     writer: BufWriter<File>,
@@ -199,6 +208,13 @@ pub struct Runtime {
     /// cells. Lets us gradualy suppress the warning network and find the
     /// ecosystem-collapse threshold (Law #064).
     pub producer_death_bonus: f64,
+    /// When true, emit the per-cell debug `eprintln!` lines (heredity,
+    /// reproduction, mortality). Default false — those lines dominate I/O and
+    /// are the main speed bottleneck for long runs.
+    pub verbose: bool,
+    /// When true, skip per-signal event writes (the 1.36M-edge JSON spam).
+    /// Keeps only snapshots/laws/births — cuts event files ~100x.
+    pub summary_log: bool,
 }
 
 #[derive(Debug, Default)]
@@ -240,6 +256,8 @@ impl Runtime {
             warning_emitted: false,
             directed_warning: false,
             producer_death_bonus: 0.0,
+            verbose: false,
+            summary_log: false,
         }
     }
 
@@ -306,7 +324,7 @@ impl Runtime {
         }
         self.stats.total_cells_born += 1;
         self.stats.peak_cells = self.stats.peak_cells.max(self.pool.len());
-        eprintln!("[tick {}] heredity: parent {} (v{}) -> child {} (v{}, aff={:?}, thresh={}, cost={}, energy={})",
+        dlog!(self, "[tick {}] heredity: parent {} (v{}) -> child {} (v{}, aff={:?}, thresh={}, cost={}, energy={})",
             self.tick, parent_id, parent_version, id, child_gene.version,
             child_gene.signal_affinity, child_gene.reproduction_threshold, child_gene.reproduction_cost, child_gene.initial_energy);
         Ok(id)
@@ -370,7 +388,7 @@ impl Runtime {
             if self.death_rate > 0.0 && rng.gen::<f64>() < eff_death_rate {
                 cell.alive = false;
                 mortality_dead_this_tick += 1;
-                eprintln!("[tick {}] cell {} died from mortality{}", self.tick, cell.id,
+                dlog!(self, "[tick {}] cell {} died from mortality{}", self.tick, cell.id,
                     if cell.prepared_ticks > 0 { " (prepared, discounted)" } else { "" });
                 
                 // Log death event
@@ -452,7 +470,7 @@ impl Runtime {
                     }
                 }
                 CellTickResult::Crashed(reason) => {
-                    eprintln!("[tick {}] cell {} crashed: {}", self.tick, cell.id, reason);
+                    dlog!(self, "[tick {}] cell {} crashed: {}", self.tick, cell.id, reason);
                     cell.alive = false;
                     
                     // Log crash death event
@@ -465,7 +483,7 @@ impl Runtime {
                     }
                 }
                 CellTickResult::Timeout => {
-                    eprintln!("[tick {}] cell {} timed out", self.tick, cell.id);
+                    dlog!(self, "[tick {}] cell {} timed out", self.tick, cell.id);
                     cell.alive = false;
                     
                     // Log timeout death event
@@ -580,11 +598,13 @@ impl Runtime {
                                     self.discover_law("L060", "Communication Converts Individual Information Into Shared Information");
                                 }
                                 if let Some(ew) = &mut self.event_writer {
-                                    let _ = ew.write_signal(
-                                        self.tick, self.stats.total_signals_delivered,
-                                        sig_type, src_id, &src_type,
-                                        cell_id, &tgt_type, true,
-                                    );
+                                    if !self.summary_log {
+                                        let _ = ew.write_signal(
+                                            self.tick, self.stats.total_signals_delivered,
+                                            sig_type, src_id, &src_type,
+                                            cell_id, &tgt_type, true,
+                                        );
+                                    }
                                 }
                                 if saw_warn {
                                     // Deferred: discover_law needs &mut self, which
@@ -612,11 +632,13 @@ impl Runtime {
                             }
                             let saw_warn = sig_type == 50 && self.warning_emitted;
                             if let Some(ew) = &mut self.event_writer {
-                                let _ = ew.write_signal(
+                                if !self.summary_log {
+                                    let _ = ew.write_signal(
                                         self.tick, self.stats.total_signals_delivered,
                                         sig_type, src_id, &src_type,
                                         tgt, &tgt_type, true,
                                     );
+                                }
                             }
                             if saw_warn {
                                 self.discover_law("L056", "Predictive Information Has Fitness Value");
@@ -679,7 +701,7 @@ impl Runtime {
             if adopted > 0 {
                 self.stats.total_adoptions += adopted as u64;
                 self.signal_adoptions += 1;
-                eprintln!("[tick {}] orphan type {} adopted by a cell", self.tick, t);
+                dlog!(self, "[tick {}] orphan type {} adopted by a cell", self.tick, t);
             }
         }
     }
@@ -724,7 +746,7 @@ impl Runtime {
                     let parent_version = parent.gene.version;
                     let parent_gene = parent.gene.clone();
                     let parent_type = parent_gene.cell_type.clone();
-                    eprintln!("[tick {}] parent cell {} paid {} for spawn", self.tick, parent_id, ENERGY_SPAWN_COST);
+                    dlog!(self, "[tick {}] parent cell {} paid {} for spawn", self.tick, parent_id, ENERGY_SPAWN_COST);
 
                     let mut child_gene = parent_gene;
                     child_gene.version += 1;
@@ -743,13 +765,13 @@ impl Runtime {
                                 let new_type = rng.gen_range(base_type.saturating_sub(5)..=base_type.saturating_add(5)).clamp(1, 255);
                                 if !child_gene.signal_affinity.contains(&new_type) {
                                     child_gene.signal_affinity.push(new_type);
-                                    eprintln!("[tick {}] mutation: signal-spawn child affinity +{} -> {:?}", self.tick, new_type, child_gene.signal_affinity);
+                                    dlog!(self, "[tick {}] mutation: signal-spawn child affinity +{} -> {:?}", self.tick, new_type, child_gene.signal_affinity);
                                 }
                             } else if child_gene.signal_affinity.len() > 1 {
                                 // Remove ONE type
                                 let idx = rng.gen_range(0..child_gene.signal_affinity.len());
                                 let removed = child_gene.signal_affinity.remove(idx);
-                                eprintln!("[tick {}] mutation: signal-spawn child affinity -{} -> {:?}", self.tick, removed, child_gene.signal_affinity);
+                                dlog!(self, "[tick {}] mutation: signal-spawn child affinity -{} -> {:?}", self.tick, removed, child_gene.signal_affinity);
                             }
                         }
                     }
@@ -757,17 +779,17 @@ impl Runtime {
                         // Use heritable mutation_step for mutations
                         let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                         child_gene.reproduction_threshold = child_gene.reproduction_threshold.saturating_add_signed(change).clamp(50, 300);
-                        eprintln!("[tick {}] mutation: signal-spawn child threshold {:+} -> {}", self.tick, change, child_gene.reproduction_threshold);
+                        dlog!(self, "[tick {}] mutation: signal-spawn child threshold {:+} -> {}", self.tick, change, child_gene.reproduction_threshold);
                     }
                     if rng.gen::<f64>() < child_gene.mutation_rate {
                         let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                         child_gene.reproduction_cost = child_gene.reproduction_cost.saturating_add_signed(change).max(1);
-                        eprintln!("[tick {}] mutation: signal-spawn child cost {:+} -> {}", self.tick, change, child_gene.reproduction_cost);
+                        dlog!(self, "[tick {}] mutation: signal-spawn child cost {:+} -> {}", self.tick, change, child_gene.reproduction_cost);
                     }
                     if rng.gen::<f64>() < child_gene.mutation_rate {
                         let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                         child_gene.initial_energy = child_gene.initial_energy.saturating_add_signed(change).max(1);
-                        eprintln!("[tick {}] mutation: signal-spawn child initial_energy {:+} -> {}", self.tick, change, child_gene.initial_energy);
+                        dlog!(self, "[tick {}] mutation: signal-spawn child initial_energy {:+} -> {}", self.tick, change, child_gene.initial_energy);
                     }
 
                     // Use heritable decay_rate
@@ -776,13 +798,13 @@ impl Runtime {
                     // E035: child may switch lineage (reactive <-> memory).
                     let switched = self.apply_lineage_switch(&mut child_gene);
                     if switched {
-                        eprintln!("[tick {}] LINEAGE SWITCH: child {} -> {} (from {})",
+                        dlog!(self, "[tick {}] LINEAGE SWITCH: child {} -> {} (from {})",
                             self.tick, parent_id, child_gene.cell_type, parent_type);
                     }
 
                     if let Ok(id) = self.spawn_child(parent_id, parent_version, child_gene) {
                         self.stats.total_spawns_from_signal += 1;
-                        eprintln!("[tick {}] spawned cell {} (type '{}') from signal trigger ({}/{})",
+                        dlog!(self, "[tick {}] spawned cell {} (type '{}') from signal trigger ({}/{})",
                             self.tick, id, gene.cell_type, existing + 1, gene.max_instances);
                     }
                 }
@@ -859,23 +881,23 @@ let mut child_gene = parent_gene.clone();
                         }
                     }
                 }
-                eprintln!("[tick {}] mutation: child {} affinity changed to {:?}", self.tick, cell_id, child_gene.signal_affinity);
+                dlog!(self, "[tick {}] mutation: child {} affinity changed to {:?}", self.tick, cell_id, child_gene.signal_affinity);
             }
             if rng.gen::<f64>() < child_gene.mutation_rate {
                 // Use heritable mutation_step for mutations
                 let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                 child_gene.reproduction_threshold = child_gene.reproduction_threshold.saturating_add_signed(change).clamp(50, 300);
-                eprintln!("[tick {}] mutation: child {} threshold changed to {}", self.tick, cell_id, child_gene.reproduction_threshold);
+                dlog!(self, "[tick {}] mutation: child {} threshold changed to {}", self.tick, cell_id, child_gene.reproduction_threshold);
             }
             if rng.gen::<f64>() < child_gene.mutation_rate {
                 let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                 child_gene.reproduction_cost = child_gene.reproduction_cost.saturating_add_signed(change).max(1);
-                eprintln!("[tick {}] mutation: child {} cost changed to {}", self.tick, cell_id, child_gene.reproduction_cost);
+                dlog!(self, "[tick {}] mutation: child {} cost changed to {}", self.tick, cell_id, child_gene.reproduction_cost);
             }
             if rng.gen::<f64>() < child_gene.mutation_rate {
                 let change = rng.gen_range(-(mutation_step as i32)..=(mutation_step as i32));
                 child_gene.initial_energy = child_gene.initial_energy.saturating_add_signed(change).max(1);
-                eprintln!("[tick {}] mutation: child {} initial_energy changed to {}", self.tick, cell_id, child_gene.initial_energy);
+                dlog!(self, "[tick {}] mutation: child {} initial_energy changed to {}", self.tick, cell_id, child_gene.initial_energy);
             }
 
             // Use heritable decay_rate
@@ -884,13 +906,13 @@ let mut child_gene = parent_gene.clone();
             // E035: child may switch lineage (reactive <-> memory).
             let switched = self.apply_lineage_switch(&mut child_gene);
             if switched {
-                eprintln!("[tick {}] LINEAGE SWITCH: child {} -> {} (from {})",
+                dlog!(self, "[tick {}] LINEAGE SWITCH: child {} -> {} (from {})",
                     self.tick, cell_id, child_gene.cell_type, parent_gene.cell_type);
             }
 
             let parent_version = parent_gene.version;
             if let Ok(id) = self.spawn_child(cell_id, parent_version, child_gene.clone()) {
-                eprintln!("[tick {}] cell {} reproduced -> {} (energy {} -> {}, cost {})",
+                dlog!(self, "[tick {}] cell {} reproduced -> {} (energy {} -> {}, cost {})",
                     self.tick, cell_id, id, energy_before, energy_before.saturating_sub(parent_gene.reproduction_cost), parent_gene.reproduction_cost);
                 self.discover_law("L020", "Heredity Enables Evolution");
                 if let Some(ew) = &mut self.event_writer {

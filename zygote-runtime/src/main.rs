@@ -90,6 +90,12 @@ struct Cli {
 
     #[arg(long, help = "E038: extra per-tick mortality applied ONLY to producer (is_memory) cells. Lets us gradualy suppress the warning network and find the ecosystem-collapse threshold. Range 0.0..1.0")]
     producer_death_bonus: Option<f64>,
+
+    #[arg(long, help = "Enable per-cell debug eprintln! output (heredity, reproduction, mortality). Off by default — those lines dominate I/O on long runs.")]
+    verbose: bool,
+
+    #[arg(long, help = "Skip per-signal event writes; keep only snapshots/laws/births. Cuts event files ~100x. Use with extract scripts that read snapshots.")]
+    summary_log: bool,
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -108,6 +114,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     rt.spawn_on_signal = cli.spawn_on_signal;
     rt.directed_warning = cli.directed_warning;
     rt.producer_death_bonus = cli.producer_death_bonus.unwrap_or(0.0);
+    rt.verbose = cli.verbose;
+    rt.summary_log = cli.summary_log;
     rt.death_rate = cli.death_rate;
     rt.base_death_rate = cli.death_rate;
     rt.init()?;

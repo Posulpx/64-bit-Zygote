@@ -50,13 +50,15 @@
 > stating what the laws argue.
 
 - **Simulation speedup (blocker for further experiments).** Runtime is I/O- and
-  log-bound (~7 ticks/sec at 600 cells; 330MB event logs). Planned work:
-  - Gate `eprintln!` reproduction/heredity/mortality spam behind `--verbose`
-    (default off). Expected 2–5x.
-  - Add `--binary-log` mode (packed binary / protobuf) replacing JSON-lines per
-    signal; ~10x smaller, ~20x faster parse. Update `extract_*.py` readers.
-  - Decouple observation from sim: headless runs, in-Rust aggregate stats,
-    sample snapshots every N ticks, emit summary once.
+  log-bound (~7 ticks/sec at 600 cells; 330MB event logs). **DONE (partial,
+  2026-07-17):** added `--verbose` (gates the per-cell `eprintln!` debug spam,
+  default off) and `--summary-log` (skips per-signal JSON writes, keeps
+  snapshots/laws/births). Measured: **2.4x faster, 14x smaller files** at 1000
+  ticks (86s/7MB vs 207s/105MB). Remaining:
+  - `--binary-log` mode (packed binary) replacing JSON for an even bigger win +
+    faster parse; update `extract_*.py`.
+  - Decouple observation: headless runs, in-Rust aggregate stats, sample
+    snapshots every N ticks.
   - Only if needed: parallelize the cell step loop; replace hot-path `HashMap`
     with Vec keyed by fixed cell id.
 - **Retest L#064's population-collapse prediction.** Current protection window
