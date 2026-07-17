@@ -104,6 +104,10 @@
 >
 > The agent loop: hypothesize → configure genome/flags → run → extract → compare
 > to known laws → write new law or update old one. Human reviews the catalog.
+>
+> **Speculative law target board:** `ZYGOTE_LAWS_PROJECTED.md` lists predicted
+> L#065–L#128 (5 research blocks A–E) as hypotheses + experiment designs for the
+> autonomous discoverer to confirm or refute.
 
 ---
 
