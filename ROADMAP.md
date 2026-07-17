@@ -84,6 +84,29 @@
 
 ---
 
+## North Star — Autonomous Law Discovery
+
+> The long-term goal: an AI agent that *autonomously* designs experiments, runs
+> the runtime, reads the event logs, and discovers + writes the next 64 laws
+> (L#065–L#128) without human-in-the-loop. Zygote becomes a self-driving ALife
+> laboratory.
+>
+> Prerequisites (must land first):
+> - **Speedup** (binary logs, verbose gating) — so an agent can run thousands of
+>   experiments, not dozens.
+> - **Structured experiment API** — the agent needs to parameterize genomes /
+>   CLI flags programmatically and get back compact, parseable summaries (not
+>   330MB JSON).
+> - **Automated insight extraction** — a reader that turns event logs into
+>   traits / edge counts / collapse signals the agent can reason over.
+> - **Law diffing** — detect when a new run *contradicts* or *refines* an
+>   existing law (L#001–L#064) vs discovers a genuinely new one.
+>
+> The agent loop: hypothesize → configure genome/flags → run → extract → compare
+> to known laws → write new law or update old one. Human reviews the catalog.
+
+---
+
 ## Beyond
 
 - Domain-specific genome libraries.
