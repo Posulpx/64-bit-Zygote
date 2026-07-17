@@ -1,0 +1,22 @@
+{
+  "name": "e035_B_memory",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "memory_cell",
+      "version": 1,
+      "asm_path": "cells/memory.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 500,
+      "signal_affinity": [1, 9],
+      "initial_energy": 150,
+      "mutation_rate": 0.01,
+      "reproduction_threshold": 100,
+      "reproduction_cost": 10,
+      "metadata": { "description": "E035 Population B — memory lineage (L056). Gets type-1 food and warning type 9, reproduces, and braces (emits type-50, mortality discount) before each shock." }
+    }
+  ]
+}

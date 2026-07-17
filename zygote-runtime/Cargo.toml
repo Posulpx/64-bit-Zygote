@@ -1,0 +1,15 @@
+[package]
+name = "zygote-runtime"
+version = "0.1.0"
+edition = "2021"
+description = "Rust runtime (foster parent) for the ZygoteAI multi-agent Assembly cell system"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+rand = "0.8"
+
+[profile.release]
+opt-level = 3
+lto = true

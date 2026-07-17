@@ -1,0 +1,32 @@
+{
+  "name": "directed_test",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "cell_a",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Relay: type N -> N+1. Affinity=[1]" }
+    },
+    {
+      "cell_type": "cell_b",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [2],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Relay: type N -> N+1. Affinity=[2] — should NOT receive type 7 via broadcast" }
+    }
+  ]
+}

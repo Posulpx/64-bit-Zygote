@@ -1,0 +1,62 @@
+{
+  "name": "spender_vs_saver",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "cell_a",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "initial_energy": 20,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Producer: type 1 -> type 2 (food)" }
+    },
+    {
+      "cell_type": "cell_b",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0, "on_signal": "2" },
+      "max_instances": 100,
+      "signal_affinity": [2],
+      "initial_energy": 20,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "SPENDER: spawns on type 2 (food signal), max 3" }
+    },
+    {
+      "cell_type": "cell_c",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [2],
+      "initial_energy": 20,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "SAVER: type 2 -> type 3, never spawns" }
+    },
+    {
+      "cell_type": "cell_d",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [3],
+      "initial_energy": 20,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Closer: type 3 -> type 1" }
+    }
+  ]
+}

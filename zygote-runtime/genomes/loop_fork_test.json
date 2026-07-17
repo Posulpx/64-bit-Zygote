@@ -1,0 +1,58 @@
+{
+  "name": "loop_fork_test",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "sensor",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [4],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 4, emits type 1" }
+    },
+    {
+      "cell_type": "cell_a",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 1, emits type 2" }
+    },
+    {
+      "cell_type": "cell_b",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 2,
+      "signal_affinity": [2],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 2, emits type 3 (2 instances)" }
+    },
+    {
+      "cell_type": "cell_c",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [3],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 3, emits type 4" }
+    }
+  ]
+}

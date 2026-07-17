@@ -1,0 +1,52 @@
+{
+  "name": "e035_memory_evolution",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "memory_cell",
+      "version": 1,
+      "asm_path": "cells/memory.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 400,
+      "signal_affinity": [1, 9],
+      "initial_energy": 80,
+      "mutation_rate": 0.05,
+      "reproduction_threshold": 100,
+      "reproduction_cost": 50,
+      "lineage": "memory",
+      "sibling": "reactive_cell",
+      "is_memory": true,
+      "memory_cost": 2,
+      "mutation_step": 10,
+      "meta_mutation_rate": 0.001,
+      "decay_rate": 0.95,
+      "metadata": { "description": "Memory lineage: stores recent signals, emits protective type-50 on seeing warning type-9; pays +2/tick maintenance" }
+    },
+    {
+      "cell_type": "reactive_cell",
+      "version": 1,
+      "asm_path": "cells/sensor.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 400,
+      "signal_affinity": [1, 9, 50],
+      "initial_energy": 40,
+      "mutation_rate": 0.05,
+      "reproduction_threshold": 100,
+      "reproduction_cost": 50,
+      "lineage": "reactive",
+      "sibling": "memory_cell",
+      "is_memory": false,
+      "memory_cost": 0,
+      "mutation_step": 10,
+      "meta_mutation_rate": 0.001,
+      "decay_rate": 0.95,
+      "metadata": { "description": "Reactive lineage: no memory, responds only when shock hits; no maintenance cost" }
+    }
+  ]
+}

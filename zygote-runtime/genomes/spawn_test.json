@@ -1,0 +1,45 @@
+{
+  "name": "spawn_test",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "producer",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 1, emits type 2" }
+    },
+    {
+      "cell_type": "spawned",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_signal": "2", "probability": 1.0, "on_startup": false },
+      "max_instances": 5,
+      "signal_affinity": [2],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Spawned when type 2 appears. Receives type 2, emits type 3" }
+    },
+    {
+      "cell_type": "sink",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [3],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Receives type 3, loops back to type 1" }
+    }
+  ]
+}

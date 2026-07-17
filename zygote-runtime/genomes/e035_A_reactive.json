@@ -1,0 +1,22 @@
+{
+  "name": "e035_A_reactive",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "reactive_cell",
+      "version": 1,
+      "asm_path": "cells/sensor.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 500,
+      "signal_affinity": [1, 50],
+      "initial_energy": 150,
+      "mutation_rate": 0.01,
+      "reproduction_threshold": 100,
+      "reproduction_cost": 10,
+      "metadata": { "description": "E035 Population A — reactive lineage, no memory. Gets type-1 food and reproduces, but cannot receive warning type 9, so cannot brace before a shock." }
+    }
+  ]
+}

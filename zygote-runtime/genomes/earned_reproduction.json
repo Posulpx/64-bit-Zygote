@@ -1,0 +1,54 @@
+{
+  "name": "earned_reproduction",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "cell_a",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "initial_energy": 50,
+      "reproduction_threshold": 0,
+      "reproduction_cost": 0,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Producer: type 1 -> type 2" }
+    },
+    {
+      "cell_type": "cell_b",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 10,
+      "signal_affinity": [2],
+      "initial_energy": 50,
+      "reproduction_threshold": 200,
+      "reproduction_cost": 100,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "EARNED reproduction: needs 200 energy to spawn" }
+    },
+    {
+      "cell_type": "cell_c",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [3],
+      "initial_energy": 50,
+      "reproduction_threshold": 0,
+      "reproduction_cost": 0,
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Closer: type 3 -> type 1" }
+    }
+  ]
+}

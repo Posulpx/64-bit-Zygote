@@ -1,0 +1,97 @@
+{
+  "name": "competing_loops",
+  "version": 1,
+  "genes": [
+    {
+      "cell_type": "cell_a",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop A hop 1: type 1 -> type 2" }
+    },
+    {
+      "cell_type": "cell_b",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [2],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop A hop 2: type 2 -> type 3" }
+    },
+    {
+      "cell_type": "cell_c",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [3],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop A hop 3: type 3 -> type 4" }
+    },
+    {
+      "cell_type": "cell_d",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [4],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop A close: type 4 -> type 1" }
+    },
+    {
+      "cell_type": "cell_e",
+      "version": 1,
+      "asm_path": "cells/offset4.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [1],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop B hop 1: type 1 -> type 5 (offset4)" }
+    },
+    {
+      "cell_type": "cell_f",
+      "version": 1,
+      "asm_path": "cells/relay.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [5],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop B hop 2: type 5 -> type 6" }
+    },
+    {
+      "cell_type": "cell_g",
+      "version": 1,
+      "asm_path": "cells/loopback.bin",
+      "stack_size": 512,
+      "state_size": 256,
+      "timeout_us": 100,
+      "spawn_condition": { "on_startup": true, "probability": 1.0 },
+      "max_instances": 1,
+      "signal_affinity": [6],
+      "mutation_rate": 0.01,
+      "metadata": { "description": "Loop B close: type 6 -> type 1" }
+    }
+  ]
+}

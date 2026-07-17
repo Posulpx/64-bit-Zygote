@@ -1,0 +1,19 @@
+# Large run event logs (hundreds of MB each) — not committed
+events*.jsonl
+zygote-runtime/events*.jsonl
+zygote-runtime/*.log
+*.log
+
+# Compiled binaries / build artifacts
+*.exe
+zmon/zmon.exe
+zygote-runtime/cells/*.bin
+zygote-runtime/cells/*.lst
+zygote-runtime/target/
+zmon/target/
+**/target/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
