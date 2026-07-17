@@ -42,6 +42,39 @@
 
 **Exit criteria:** External contributor runs an experiment and documents a new phenomenon.
 
+## Beyond 64
+
+> Logged 2026-07-17. The 64-law catalog (L#001–L#064) is complete through the
+> ecosystem-collapse threshold (E038). The next phase is about *throughput* and
+> *meaning* — making the instrument fast enough to test its own predictions, and
+> stating what the laws argue.
+
+- **Simulation speedup (blocker for further experiments).** Runtime is I/O- and
+  log-bound (~7 ticks/sec at 600 cells; 330MB event logs). Planned work:
+  - Gate `eprintln!` reproduction/heredity/mortality spam behind `--verbose`
+    (default off). Expected 2–5x.
+  - Add `--binary-log` mode (packed binary / protobuf) replacing JSON-lines per
+    signal; ~10x smaller, ~20x faster parse. Update `extract_*.py` readers.
+  - Decouple observation from sim: headless runs, in-Rust aggregate stats,
+    sample snapshots every N ticks, emit summary once.
+  - Only if needed: parallelize the cell step loop; replace hot-path `HashMap`
+    with Vec keyed by fixed cell id.
+- **Retest L#064's population-collapse prediction.** Current protection window
+  (`PREPARED_DURATION=6`) is far shorter than shock duration (40 ticks), so the
+  warning is never load-bearing at survivable shock rates — only the *warning
+  network* collapses, not the population. Either extend `PREPARED_DURATION` to
+  match shock duration, or find the shock rate where braced cells live and
+  un-braced cells die, to demonstrate the full L#064 chain (producer loss →
+  protection loss → population collapse).
+- **Articulate the "why" — `ZYGOTE_THESIS.md`.** Frame Zygote as a minimal model
+  of the evolution of cooperative information systems: communication emerges,
+  becomes a public good, is destroyed by free riders (L#062), rescued by
+  selective sharing (L#063), and persists only above a minimum producer fraction
+  (L#064). Connect to language / immune alarm signaling / AI alignment. The
+  stable state is a club, not a commons.
+
+---
+
 ## Beyond
 
 - Domain-specific genome libraries.
